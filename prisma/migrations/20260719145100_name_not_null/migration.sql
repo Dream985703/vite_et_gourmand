@@ -1,0 +1,1 @@
+ALTER TABLE "utilisateur" ALTER COLUMN "nom" SET NOT NULL;
