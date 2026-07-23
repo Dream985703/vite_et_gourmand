@@ -169,12 +169,8 @@ export function OrderForm({
             return;
         }
 
-        if (isEdit) {
-            router.push("/account");
-            router.refresh();
-        } else {
-            alert("OK");
-        }
+        router.push("/account");
+        router.refresh();
     };
 
     return (
