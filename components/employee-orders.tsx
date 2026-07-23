@@ -5,6 +5,7 @@ import {
     acceptOrder,
     advanceOrderStatus,
     cancelOrderByEmployee,
+    confirmMaterialReturn,
 } from "@/app/actions/employee-order";
 import { STATUT_SUIVI_LABELS } from "@/app/lib/suivi";
 import { Button } from "./ui/button";
@@ -20,6 +21,7 @@ type OrderItem = {
     prix_menu: number;
     prix_livraison: number;
     pret_materiel: boolean;
+    restitution_materiel: boolean;
     motif_annulation: string | null;
     menu: { titre: string };
     suivis: { statut: string }[];
@@ -55,9 +57,6 @@ function getNextLabel(order: OrderItem) {
         if (order.pret_materiel) {
             return STATUT_SUIVI_LABELS.EnAttenteDuRetourDeMateriel;
         }
-        return STATUT_SUIVI_LABELS.Terminee;
-    }
-    if (current === "EnAttenteDuRetourDeMateriel") {
         return STATUT_SUIVI_LABELS.Terminee;
     }
 
@@ -109,6 +108,14 @@ export function EmployeeOrders({ orders }: { orders: OrderItem[] }) {
         setError("");
         setPending(true);
         const res = await advanceOrderStatus(numero);
+        if (res.error) setError(res.error);
+        setPending(false);
+    }
+
+    async function onMaterialReturn(numero: string) {
+        setError("");
+        setPending(true);
+        const res = await confirmMaterialReturn(numero);
         if (res.error) setError(res.error);
         setPending(false);
     }
@@ -187,6 +194,16 @@ export function EmployeeOrders({ orders }: { orders: OrderItem[] }) {
                                     {order.pret_materiel
                                         ? " · prêt matériel"
                                         : ""}
+                                    {order.pret_materiel &&
+                                    order.restitution_materiel
+                                        ? " · matériel restitué"
+                                        : ""}
+                                    {order.pret_materiel &&
+                                    !order.restitution_materiel &&
+                                    order.statut ===
+                                        "En attente du retour de matériel"
+                                        ? " · en attente de restitution"
+                                        : ""}
                                 </p>
                                 <p className="text-sm font-medium text-indigo-600">
                                     {order.statut}
@@ -214,7 +231,9 @@ export function EmployeeOrders({ orders }: { orders: OrderItem[] }) {
                                         order.statut !==
                                             "En attente d'acceptation" &&
                                         order.statut !== "Annulée" &&
-                                        order.statut !== "Terminée" && (
+                                        order.statut !== "Terminée" &&
+                                        order.statut !==
+                                            "En attente du retour de matériel" && (
                                             <Button
                                                 type="button"
                                                 disabled={pending}
@@ -226,6 +245,20 @@ export function EmployeeOrders({ orders }: { orders: OrderItem[] }) {
                                                 Passer à : {next}
                                             </Button>
                                         )}
+
+                                    {order.statut ===
+                                        "En attente du retour de matériel" && (
+                                        <Button
+                                            type="button"
+                                            disabled={pending}
+                                            onClick={() =>
+                                                onMaterialReturn(
+                                                    order.numero_commande,
+                                                )
+                                            }>
+                                            Matériel restitué
+                                        </Button>
+                                    )}
 
                                     {order.statut !== "Annulée" &&
                                         order.statut !== "Terminée" && (

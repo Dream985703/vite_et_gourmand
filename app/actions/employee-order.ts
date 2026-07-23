@@ -80,8 +80,12 @@ export async function advanceOrderStatus(numeroCommande: string) {
         } else {
             next = "Terminee";
         }
-    } else if (current === "EnAttenteDuRetourDeMateriel") {
-        next = "Terminee";
+    }
+
+    if (current === "EnAttenteDuRetourDeMateriel") {
+        return {
+            error: "Utilisez le bouton « Matériel restitué » pour terminer la commande",
+        };
     }
 
     if (!next) {
@@ -133,6 +137,70 @@ export async function advanceOrderStatus(numeroCommande: string) {
             appUrl +
             "/account\n\nCordialement,\nVite & Gourmand",
         );
+    }
+
+    revalidatePath("/account");
+    return { error: null };
+}
+
+export async function confirmMaterialReturn(numeroCommande: string) {
+    const employee = await getEmployee();
+    if (!employee) {
+        return { error: "Accès refusé" };
+    }
+
+    const order = await prisma.commande.findFirst({
+        where: { numero_commande: numeroCommande },
+    });
+
+    if (!order) {
+        return { error: "Commande introuvable" };
+    }
+
+    if (!order.pret_materiel) {
+        return { error: "Cette commande n'a pas de prêt de matériel" };
+    }
+
+    if (order.statut !== "En attente du retour de matériel") {
+        return {
+            error: "Le matériel ne peut être marqué restitué que pendant l'attente de retour",
+        };
+    }
+
+    if (order.restitution_materiel) {
+        return { error: "Le matériel a déjà été restitué" };
+    }
+
+    await prisma.suivi_statut.create({
+        data: {
+            numero_commande: numeroCommande,
+            statut: "Terminee",
+        },
+    });
+
+    await prisma.commande.update({
+        where: { numero_commande: numeroCommande },
+        data: {
+            statut: "Terminée",
+            restitution_materiel: true,
+        },
+    });
+
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    try {
+        await sendMail(
+            order.client_email,
+            "Donnez votre avis - Vite & Gourmand",
+            "Bonjour " +
+                order.client_prenom +
+                ",\n\nVotre commande " +
+                order.numero_commande +
+                " est terminée.\n\nVous pouvez vous connecter à votre compte pour donner votre avis (note de 1 à 5 et un commentaire) :\n" +
+                appUrl +
+                "/account\n\nCordialement,\nVite & Gourmand",
+        );
+    } catch (mailError) {
+        console.error(mailError);
     }
 
     revalidatePath("/account");
