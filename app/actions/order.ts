@@ -4,13 +4,13 @@ import type { OrderForm } from "@/components/order-form";
 import { prisma } from "@/prisma/client";
 import { revalidatePath } from "next/cache";
 import { auth } from "../auth";
+import { sendMail } from "@/app/lib/mail";
 
 export async function confirmOrder(
     form: OrderForm,
     totalCommande: number,
     totalLivraison: number,
 ): Promise<{ error: string | null }> {
-
     const session = await auth();
     if (!session?.user.id) {
         return { error: "Vous devez être connecté" };
@@ -21,6 +21,14 @@ export async function confirmOrder(
     }
 
     const totalCommandes = await prisma.commande.count();
+    const numero =
+        "#" +
+        (session.user.name?.toUpperCase().replaceAll(" ", "") || "CLIENT") +
+        (totalCommandes + 1);
+
+    const menu = await prisma.menu.findFirst({
+        where: { menu_id: form.menu_id },
+    });
 
     await prisma.commande.create({
         data: {
@@ -33,9 +41,7 @@ export async function confirmOrder(
             statut: "En attente d'acceptation",
             menu_id: form.menu_id,
             utilisateur_id: Number(session.user.id),
-            numero_commande: String(
-                `#${session.user.name?.toUpperCase().replaceAll(" ", "")}${totalCommandes + 1}`,
-            ),
+            numero_commande: numero,
             pret_materiel: form.pret_materiel,
             restitution_materiel: false,
             client_prenom: form.client_firstname,
@@ -46,6 +52,31 @@ export async function confirmOrder(
             ville: form.city,
         },
     });
+
+    const total = totalCommande + totalLivraison;
+    try {
+        await sendMail(
+            form.client_mail,
+            "Confirmation de commande - Vite & Gourmand",
+            "Bonjour " +
+            form.client_firstname +
+            ",\n\nVotre commande " +
+            numero +
+            " a bien été enregistrée.\n\nMenu : " +
+            (menu?.titre || "") +
+            "\nPersonnes : " +
+            form.nb_personnes +
+            "\nDate de prestation : " +
+            form.date +
+            "\nHeure de livraison : " +
+            form.hour +
+            "\nTotal : " +
+            total.toFixed(2) +
+            " €\n\nStatut actuel : En attente d'acceptation\n\nCordialement,\nVite & Gourmand",
+        );
+    } catch (mailError) {
+        console.error(mailError);
+    }
 
     return {
         error: null,

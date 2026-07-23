@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/prisma/client";
 import { CancelOrderButton } from "@/components/cancel-order-button";
 import { ProfileForm } from "@/components/profile-form";
+import { ReviewForm } from "@/components/review-form";
 import { canTrackOrder } from "@/app/lib/suivi";
 import type { utilisateur } from "@/app/generated/prisma/client";
 
@@ -153,6 +154,14 @@ export async function AccountUser({ user }: { user: utilisateur }) {
                                                 Suivre ma commande
                                             </Link>
                                         </div>
+                                    )}
+
+                                    {order.statut === "Terminée" && (
+                                        <ReviewForm
+                                            numeroCommande={
+                                                order.numero_commande
+                                            }
+                                        />
                                     )}
                                 </li>
                             );

@@ -157,11 +157,11 @@ export function OrderForm({
 
         const res = isEdit
             ? await updateOrder(
-                  orderNumber!,
-                  form,
-                  prixMenu,
-                  majoration,
-              )
+                orderNumber!,
+                form,
+                prixMenu,
+                majoration,
+            )
             : await confirmOrder(form, prixMenu, majoration);
 
         if (res.error) {
@@ -195,7 +195,7 @@ export function OrderForm({
                         <p className="bg-white/70 h-9 px-3 rounded-lg text-sm flex items-center text-primary-foreground/70">
                             {selectedMenu
                                 ? `${selectedMenu.titre} (${selectedMenu.prix_par_personne}€)`
-                                : "—"}
+                                : "-"}
                         </p>
                     </div>
                 ) : (
@@ -217,11 +217,10 @@ export function OrderForm({
                 )}
                 <Input
                     className="w-full"
-                    label={`Nombre de personnes ${
-                        selectedMenu
+                    label={`Nombre de personnes ${selectedMenu
                             ? `(min. ${selectedMenu.nombre_personne_minimum})`
                             : ""
-                    }`}
+                        }`}
                     name="nb_personnes"
                     placeholder="18"
                     type="number"

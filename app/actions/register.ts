@@ -3,6 +3,7 @@
 import { prisma } from "@/prisma/client";
 import bcrypt from "bcryptjs";
 import { validatePassword } from "../lib/utils";
+import { sendMail } from "@/app/lib/mail";
 
 type RegisterResult = {
     error?: string;
@@ -78,6 +79,18 @@ export async function registerUser(
                 },
             },
         });
+
+        try {
+            await sendMail(
+                email,
+                "Bienvenue sur Vite & Gourmand",
+                "Bonjour " +
+                    firstname +
+                    ",\n\nBienvenue sur Vite & Gourmand ! Votre compte a bien été créé.\nVous pouvez dès maintenant commander nos menus.\n\nCordialement,\nL'équipe Vite & Gourmand",
+            );
+        } catch (mailError) {
+            console.error(mailError);
+        }
 
         return { success: true };
     } catch (err) {

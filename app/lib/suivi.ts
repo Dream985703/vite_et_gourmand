@@ -9,17 +9,9 @@ export const STATUT_SUIVI_LABELS: Record<statut_suivi, string> = {
     Terminee: "Terminée",
 };
 
-export const STATUT_SUIVI_ORDER: statut_suivi[] = [
-    "Accepte",
-    "EnPreparation",
-    "EnCoursDeLivraison",
-    "Livre",
-    "EnAttenteDuRetourDeMateriel",
-    "Terminee",
-];
-
-export function canTrackOrder(statut: string): boolean {
-    return (
-        statut !== "En attente d'acceptation" && statut !== "Terminée"
-    );
+export function canTrackOrder(statut: string) {
+    if (statut === "En attente d'acceptation") return false;
+    if (statut === "Terminée") return false;
+    if (statut === "Annulée") return false;
+    return true;
 }

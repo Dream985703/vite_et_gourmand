@@ -16,12 +16,12 @@ export default async function AccountPage() {
         include: { role: true },
     });
 
-    if (!user) {
+    if (!user || !user.actif) {
         redirect("/login");
     }
 
     switch (user.role.libelle) {
-        case "Admin":
+        case "Administrateur":
             return <AccountAdmin user={user} />;
         case "Employé":
             return <AccountEmployee user={user} />;

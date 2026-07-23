@@ -18,6 +18,7 @@ model commande {
   statut               String   @db.VarChar(50)
   pret_materiel        Boolean
   restitution_materiel Boolean
+  motif_annulation     String?  @db.VarChar(255)
   client_prenom        String   @db.VarChar(50)
   client_nom           String   @db.VarChar(50)
   client_email         String   @db.VarChar(50)
@@ -81,15 +82,18 @@ model theme {
 }
 
 model utilisateur {
-  utilisateur_id  Int    @id @default(autoincrement())
-  email           String @db.VarChar(50)
-  password        String @db.VarChar(255)
-  prenom          String @db.VarChar(50)
-  nom             String @db.VarChar(50)
-  telephone       String @db.VarChar(50)
-  ville           String @db.VarChar(50)
-  pays            String @db.VarChar(50)
-  adresse_postale String @db.VarChar(50)
+  utilisateur_id  Int       @id @default(autoincrement())
+  email           String    @db.VarChar(50)
+  password        String    @db.VarChar(255)
+  prenom          String    @db.VarChar(50)
+  nom             String    @db.VarChar(50)
+  telephone       String    @db.VarChar(50)
+  ville           String    @db.VarChar(50)
+  pays            String    @db.VarChar(50)
+  adresse_postale String    @db.VarChar(50)
+  actif           Boolean   @default(true)
+  reset_token     String?   @db.VarChar(255)
+  reset_expires   DateTime?
 
   role_id Int
   role    role @relation(fields: [role_id], references: [role_id])
@@ -105,9 +109,9 @@ model role {
 }
 
 model avis {
-  avis_id     Int    @id
+  avis_id     Int    @id @default(autoincrement())
   note        String @db.VarChar(50)
-  description String @db.VarChar(50)
+  description String @db.VarChar(255)
   statut      String @db.VarChar(50)
 
   utilisateur_id Int

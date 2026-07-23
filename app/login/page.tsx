@@ -49,6 +49,11 @@ export default function LoginPage() {
                     Se connecter
                 </Button>
             </form>
+            <Link
+                href="/forgot-password"
+                className="text-sm text-primary-foreground underline">
+                Mot de passe oublié ?
+            </Link>
             <p className="text-primary-foreground">
                 Vous n'avez pas de compte ?{" "}
                 <Link href="/join-us">
